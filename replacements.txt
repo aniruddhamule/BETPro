@@ -1,0 +1,1 @@
+regex:\bsk_test_[A-Za-z0-9]+\b==>sk_test_REDACTED
