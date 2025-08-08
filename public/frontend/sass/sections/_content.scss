@@ -1,0 +1,48 @@
+/*----------------------------------------------
+    # content style
+----------------------------------------------*/
+.single-feature-inner {
+	padding: 30px 25px;
+	margin-bottom: 30px;
+	&.style-2 {
+		padding: 0;
+		box-shadow: $box-shadow;
+		border-radius: 5px;
+		.thumb {
+			background: rgba(50, 79, 176, 0.10);
+			padding: 15px;
+			transition: 0.4s;
+			border-radius: 5px 5px 0 0;
+		}
+		.details {
+			padding: 30px;
+		}
+		&:hover {
+			.thumb {
+				background: var(--main-color);
+				img {
+					filter: brightness(100);
+				}
+			}
+		}
+	}
+}
+.features-area-inner {
+	background: #030912;
+	border: 1px solid #333F4D;
+	padding: 110px 60px;
+	position: relative;
+	z-index: 2;
+}
+
+.client-slider {
+	.thumb {
+		display: inline-block;
+		img {
+			width: auto;
+		}
+	}
+	.owl-nav {
+		display: none;
+	}
+}

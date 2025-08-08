@@ -1,0 +1,43 @@
+:root {
+  --main-color: #324FB0;
+  --heading-color: #33406A;
+  --paragraph-color: #526288;
+}
+
+.bg-light-base {
+  background: #33406A;
+}
+
+body {
+  background: #fff;
+}
+
+.navbar-area {
+  background: #fff;
+}
+
+.nav-right-part a {
+  margin-left: 15px;
+  color: #fff;
+}
+
+.border-color {
+  border: 1px solid #E3E3E3 !important;
+}
+
+.border-top-1 {
+  border-top: 1px solid #E3E3E3;
+}
+
+.border-bottom-1 {
+  border-bottom: 1px solid #E3E3E3;
+}
+
+.accordion-inner .accordion-item .accordion-button::after {
+  -webkit-filter: brightness(1);
+          filter: brightness(1);
+}
+
+.section-title.style-white .sub-title {
+  color: #fff;
+}
