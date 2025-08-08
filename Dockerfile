@@ -1,40 +1,53 @@
+# ----- Base: PHP 8.2 + Apache
 FROM php:8.2-apache
 
-# OS deps
+# ----- System libs for common PHP extensions
 RUN apt-get update && apt-get install -y \
     libicu-dev libzip-dev libpng-dev libjpeg-dev libfreetype6-dev \
-    unzip git curl && rm -rf /var/lib/apt/lists/*
+    unzip git curl \
+ && rm -rf /var/lib/apt/lists/*
 
-# Apache + PHP extensions
+# ----- Apache + PHP extensions
 RUN a2enmod rewrite headers expires
 RUN docker-php-ext-configure gd --with-freetype --with-jpeg \
- && docker-php-ext-install -j$(nproc) pdo pdo_mysql mysqli gd zip intl bcmath opcache
+ && docker-php-ext-install -j"$(nproc)" \
+    pdo pdo_mysql mysqli gd zip intl bcmath opcache
 
-# Document root = Laravel public
+# ----- Use Laravel public as document root
 ARG DOCROOT=/var/www/html/public
 ENV APACHE_DOCUMENT_ROOT=${DOCROOT}
 RUN sed -ri "s#DocumentRoot /var/www/html#DocumentRoot ${APACHE_DOCUMENT_ROOT}#g" /etc/apache2/sites-available/000-default.conf \
  && sed -ri "s#<Directory /var/www/>#<Directory ${APACHE_DOCUMENT_ROOT}>#g" /etc/apache2/apache2.conf \
  && sed -ri "s#AllowOverride None#AllowOverride All#g" /etc/apache2/apache2.conf
 
-# Workdir and app copy
+# ----- App files
 WORKDIR /var/www/html
 COPY . /var/www/html
 
-# Composer
+# ----- Composer
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
-RUN composer install --no-dev --prefer-dist --no-interaction --no-progress
 
-# Laravel bootstrap steps (safe to re-run)
-RUN php artisan storage:link || true
+# Fix composer "dubious ownership" warning inside Docker
+RUN git config --global --add safe.directory /var/www/html
 
-# Permissions
-RUN chown -R www-data:www-data /var/www/html
+# Ensure laravel/ui exists (needed because your app uses Auth::routes())
+# Then install deps
+RUN composer require laravel/ui:^3.4 --no-interaction --no-progress \
+ && composer install --no-dev --prefer-dist --no-interaction --no-progress
 
-# Healthcheck
-HEALTHCHECK --interval=30s --timeout=5s --retries=5 CMD curl -fsS http://127.0.0.1/ || exit 1
+# Optional: storage symlink & perms (safe to re-run)
+RUN php artisan storage:link || true \
+ && chown -R www-data:www-data /var/www/html \
+ && chmod -R ug+rwx storage bootstrap/cache
+
+# Healthcheck for Koyeb
+HEALTHCHECK --interval=30s --timeout=5s --retries=5 \
+  CMD curl -fsS http://127.0.0.1/ || exit 1
 
 EXPOSE 80
 
-# Run artisan boot tasks at container start, then launch Apache
-CMD php artisan config:cache && php artisan route:cache && php artisan view:cache && apache2-foreground
+# Cache on boot; requires APP_KEY/DB envs set in Koyeb
+CMD php artisan config:cache \
+ && php artisan route:cache \
+ && php artisan view:cache \
+ && apache2-foreground
